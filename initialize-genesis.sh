@@ -22,12 +22,16 @@ docker run --rm \
   --geth-genesis-json-out /config/genesis.json \
   --output-ssz /consensus/genesis.ssz
 
+echo "Generate genesis success!"
+
 rm -rf $(pwd)/execution/
 docker run --rm \
   -v "$(pwd)/execution":/execution \
   gcr.io/prysmaticlabs/prysm/beacon-chain:v4.1.1 \
   generate-auth-secret \
   -o /execution/jwtsecret
+
+echo "Generate jwtsecret success!"
 
 # Sets up the genesis configuration for the go-ethereum client from a JSON file.
 docker run --rm \
@@ -39,8 +43,10 @@ docker run --rm \
   --state.scheme=hash \
   /config/genesis.json
 
+echo "Initialize geth success!"
 
-docker run --rm --name validator -it --network=devnet \
+rm -rf $(pwd)/consensus/
+docker run --rm --name validator -it \
   -v "$(pwd)/consensus:/consensus" \
   -v "$(pwd)/validator_keys:/validator_keys" \
   gcr.io/prysmaticlabs/prysm/validator:v4.1.1 \
