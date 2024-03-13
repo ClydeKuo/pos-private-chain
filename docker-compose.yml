@@ -81,7 +81,7 @@ services:
   validator:
     environment:
       - TZ=Asia/Shanghai
-    image: "gcr.io/prysmaticlabs/prysm/validator:stable"
+    image: "gcr.io/prysmaticlabs/prysm/validator:v4.1.1"
     command:
       - --beacon-rpc-provider=beacon-chain:4000
       - --datadir=/consensus/validatordata

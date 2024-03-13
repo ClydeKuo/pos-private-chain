@@ -6,6 +6,8 @@ set -eu
 
 
 # Creates a genesis state for the beacon chain using a YAML configuration file 
+rm -rf $(pwd)/consensus/
+rm -rf $(pwd)/execution/
 deposit_data=$(ls validator_keys/deposit_data-*.json)
 docker run --rm \
   -v "$(pwd)/config:/config" \
@@ -19,12 +21,11 @@ docker run --rm \
   --chain-config-file /config/beacon-chain-config.yml \
   --deposit-json-file /$deposit_data \
   --geth-genesis-json-in /config/genesis.json \
-  --geth-genesis-json-out /config/genesis.json \
+  --geth-genesis-json-out /execution/genesis-out.json \
   --output-ssz /consensus/genesis.ssz
 
 echo "Generate genesis success!"
 
-rm -rf $(pwd)/execution/
 docker run --rm \
   -v "$(pwd)/execution":/execution \
   gcr.io/prysmaticlabs/prysm/beacon-chain:v4.1.1 \
@@ -36,16 +37,14 @@ echo "Generate jwtsecret success!"
 # Sets up the genesis configuration for the go-ethereum client from a JSON file.
 docker run --rm \
   -v "$(pwd)/execution:/execution" \
-  -v "$(pwd)/config:/config" \
   ethereum/client-go:latest \
   init \
   --datadir=/execution \
   --state.scheme=hash \
-  /config/genesis.json
+  /execution/genesis-out.json
 
 echo "Initialize geth success!"
 
-rm -rf $(pwd)/consensus/
 docker run --rm --name validator -it \
   -v "$(pwd)/consensus:/consensus" \
   -v "$(pwd)/validator_keys:/validator_keys" \
